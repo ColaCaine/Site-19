@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Terminal</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: monospace;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    #input-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .prompt {
+      flex-shrink: 0;
+      margin-right: 10px;
+      font-size: 14px; /* Ensure prompt size matches terminal text */
+    }
+    .input-line {
+      flex-grow: 1;
+      background: black;
+      color: white;
+      border: none;
+      outline: none;
+      font-family: monospace;
+      font-size: 14px; /* Match font size with terminal text */
+    }
+    #terminal {
+      flex-grow: 1;
+      width: 100%;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-size: 14px; /* Ensure terminal text size matches input */
+    }
+    .yellow {
+      color: yellow;
+    }
+    .red {
+      color: red;
+    }
+    .green {
+      color: lime;
+    }
+    /* Popup styling */
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #1a1a1a;
+      border: 2px solid #4caf50;
+      border-radius: 10px;
+      padding: 20px;
+      width: 300px;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 0 10px #4caf50;
+    }
+    .popup h2 {
+      color: white;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .popup label {
+      display: block;
+      color: white;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+    .popup input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #4caf50;
+      border-radius: 5px;
+      font-family: monospace;
+    }
+    .popup input[type="password"] {
+      font-family: sans-serif;
+    }
+    .popup button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .popup button:hover {
+      background-color: #45a049;
+    }
+    #popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal"></div>
+  <div id="input-container">
+    <span id="prompt" class="prompt">C:/Site-19/User></span>
+    <input type="text" id="input-line" class="input-line" autofocus autocomplete="off">
+  </div>
+
+  <!-- Login Popup -->
+  <div id="popup-overlay"></div>
+  <div id="login-popup" class="popup">
+    <h2>Government Login</h2>
+    <form id="login-form">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" autocomplete="username" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <script>
+    const terminal = document.getElementById("terminal");
+    const inputLine = document.getElementById("input-line");
+    const prompt = document.getElementById("prompt");
+    const loginPopup = document.getElementById("login-popup");
+    const popupOverlay = document.getElementById("popup-overlay");
+    const loginForm = document.getElementById("login-form");
+
+    // Configuration: Whitelisted logins and user-specific commands
+    const logins = {
+      "": "",                                                                                          //copy paste toolkit: "user": "pass",
+      "05-0-fiver": "2219"
+    };
+
+    // User-specific commands
+    const userCommands = {
+
+      },
+      "05-0-fiver": {
+        "help": "Displays a list of available commands.",
+        "projects": "Lists all your active projects.",
+        "clear": "Clears the terminal screen.",
+        "logout": "Logs out the current user.",
+        "loadout": "Custom"
+      }
+    };
+
+    let isLoggedIn = false;
+    let currentUser = "User";
+
+    function appendToTerminal(text, className = "") {
+      const line = document.createElement("div");
+      line.textContent = text;
+      if (className) {
+        line.classList.add(className);
+      }
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function updatePrompt() {
+      prompt.textContent = `C:/Site-19/${currentUser}>`;
+    }
+
+    function clearTerminal() {
+      terminal.innerHTML = ""; // Clear all terminal text
+    }
+
+    function showLoginPopup() {
+      loginPopup.style.display = "block";
+      popupOverlay.style.display = "block";
+    }
+
+    function hideLoginPopup() {
+      loginPopup.style.display = "none";
+      popupOverlay.style.display = "none";
+    }
+
+    function displayHelp() {
+      if (!isLoggedIn) {
+        appendToTerminal("Use the login command to open the login gui.", "red");
+        return;
+      }
+
+      appendToTerminal("Available Commands:");
+      const commands = userCommands[currentUser];
+      for (const [command, description] of Object.entries(commands)) {
+        appendToTerminal(`  ${command} - ${description}`);
+      }
+    }
+     
+
+    inputLine.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const userInput = inputLine.value.trim();
+        inputLine.value = "";
+
+        // Always print the current prompt and input to simulate a new line
+        appendToTerminal(prompt.textContent + " " + userInput);
+
+        if (!userInput) {
+          appendToTerminal(""); // Add a new blank line
+          return;
+        }
+
+        const [command, ...args] = userInput.split(" ");
+
+        if (command === "help") {
+          displayHelp();
+        } else if (command === "login") {
+          if (isLoggedIn) {
+            appendToTerminal("You are already logged in.", "yellow");
+          } else {
+            showLoginPopup();
+          }
+        } else if (command === "clear") {
+          clearTerminal(); // Clear terminal without any message
+        } else if (command === "logout") {
+          if (isLoggedIn) {
+            isLoggedIn = false;
+            currentUser = "User";
+            clearTerminal();
+          } else {
+            appendToTerminal("Please login first to use this command.", "yellow");
+          }
+        } else if (isLoggedIn && userCommands[currentUser] && userCommands[currentUser][command]) {
+          appendToTerminal(userCommands[currentUser][command]);
+        } else {
+          appendToTerminal("Command not recognized.", "yellow");
+        }
+
+        // Add a new line after every input
+        appendToTerminal("");
+        updatePrompt();
+      }
+    });
+
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault(); // Prevent form submission
+
+      const username = loginForm.username.value.trim();
+      const password = loginForm.password.value;
+
+      if (logins[username] === password) {
+        isLoggedIn = true;
+        currentUser = username;
+        appendToTerminal("Login successful.", "green");
+        hideLoginPopup();
+      } else {
+        appendToTerminal("Login failed. Invalid username or password.", "red");
+        hideLoginPopup();
+      }
+
+      updatePrompt();
+    });
+
+    popupOverlay.addEventListener("click", hideLoginPopup);
+  </script>
+</body>
+</html>
