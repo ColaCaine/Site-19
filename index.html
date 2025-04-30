@@ -139,22 +139,27 @@
     const popupOverlay = document.getElementById("popup-overlay");
     const loginForm = document.getElementById("login-form");
 
-    // Configuration: Whitelisted logins and user-specific commands
+    // Configuration: Whitelisted logins and user-specific commands                       copy paste toolbox:       "user": "placeholder"
     const logins = {
-      "": "",                                                                                          //copy paste toolkit: "user": "pass",
-      "05-0-fiver": "2219"
+      "theadmin14": "9444132",
+      "05-0-Fiver": "2219"
     };
 
     // User-specific commands
     const userCommands = {
-
+      "theadmin14": {
+        "help": "Displays a list of available commands.",
+        "status": "Shows the system status.",
+        "clear": "Clears the terminal screen.",
+        "logout": "Logs out the current user."
       },
-      "05-0-fiver": {
+      "05-0-Fiver": {
         "help": "Displays a list of available commands.",
         "projects": "Lists all your active projects.",
         "clear": "Clears the terminal screen.",
         "logout": "Logs out the current user.",
-        "loadout": "Custom"
+        "loadout": "Placeholder.",
+        "version": "V1.0 Public Beta()"
       }
     };
 
@@ -189,19 +194,7 @@
       popupOverlay.style.display = "none";
     }
 
-    function displayHelp() {
-      if (!isLoggedIn) {
-        appendToTerminal("Use the login command to open the login gui.", "red");
-        return;
-      }
-
-      appendToTerminal("Available Commands:");
-      const commands = userCommands[currentUser];
-      for (const [command, description] of Object.entries(commands)) {
-        appendToTerminal(`  ${command} - ${description}`);
-      }
-    }
-     
+ 
 
     inputLine.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
@@ -218,7 +211,7 @@
 
         const [command, ...args] = userInput.split(" ");
 
-        if (command === "help") {
+        if (command === "hdauwhduhudhushdauhwuhdushuahwiudhsawdsawdsawdsuhawoihawdsawdsawdsawdsawdsawdisawsdswdsawdshdauwhduhudhushdauhwuhdushuahwiudhsawdsawdsawdsuhawoihawdsawdsawdsawdsawdsawdisawsdswdsawdshdauwhduhudhushdauhwuhdushuahwiudhsawdsawdsawdsuhawoihawdsawdsawdsawdsawdsawdisawsdswdsawdshdauwhduhudhushdauhwuhdushuahwiudhsawdsawdsawdsuhawoihawdsawdsawdsawdsawdsawdisawsdswdsawdshdauwhduhudhushdauhwuhdushuahwiudhsawdsawdsawdsuhawoihawdsawdsawdsawdsawdsawdisawsdswdsawds9123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312123u819203810293812293812093810298312") {
           displayHelp();
         } else if (command === "login") {
           if (isLoggedIn) {
